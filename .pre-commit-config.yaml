@@ -1,0 +1,53 @@
+repos:
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        files: "^rustore_client"
+        stages: [commit]
+        language: system
+        entry: pipenv run isort
+        types: [python]
+
+      - id: black
+        name: black
+        files: "^rustore_client"
+        stages: [commit]
+        language: system
+        entry: pipenv run black
+        types: [python]
+
+      - id: flake8
+        name: flake8
+        files: "^rustore_client"
+        stages: [commit]
+        language: system
+        entry: pipenv run flake8
+        types: [python]
+
+      - id: mypy
+        name: mypy
+        files: "^rustore_client"
+        stages: [commit]
+        language: system
+        entry: pipenv run mypy
+        types: [python]
+        pass_filenames: true
+
+      - id: mypy-full
+        name: mypy
+        files: ".py$"
+        stages: [push]
+        language: system
+        entry: pipenv run mypy rustore_client/
+        types: [python]
+        pass_filenames: false
+
+      - id: pytest
+        name: pytest
+        stages: [push]
+        entry: pipenv run py.test -v
+        pass_filenames: false
+        language: system
+        always_run: true
+        types: [python]
