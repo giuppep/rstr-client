@@ -3,8 +3,7 @@ from __future__ import annotations
 import io
 import os
 from contextlib import ExitStack
-from dataclasses import dataclass
-from typing import IO, Any, Union
+from typing import IO, Any, Optional, Union
 
 import requests
 
@@ -19,11 +18,20 @@ MAX_BATCH_SIZE = 100
 VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
 
 
-@dataclass
 class Rustore:
+    def __init__(
+        self,
+        url: Optional[str] = os.getenv("RUSTORE_URL"),
+        api_key: Optional[str] = os.getenv("RUSTORE_API_KEY"),
+    ) -> None:
+        if url is None or api_key is None:
+            raise Exception("Must specify URL and API key")
 
-    url: str
-    api_key: str
+        self.url: str = url
+        self.api_key: str = api_key
+
+    def __repr__(self) -> str:
+        return f'Rustore("{self.url}")'
 
     @property
     def _headers(self) -> dict[str, str]:
