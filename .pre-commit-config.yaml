@@ -6,7 +6,7 @@ repos:
         files: "^rustore_client"
         stages: [commit]
         language: system
-        entry: pipenv run isort
+        entry: poetry run isort
         types: [python]
 
       - id: black
@@ -14,7 +14,7 @@ repos:
         files: "^rustore_client"
         stages: [commit]
         language: system
-        entry: pipenv run black
+        entry: poetry run black
         types: [python]
 
       - id: flake8
@@ -22,7 +22,7 @@ repos:
         files: "^rustore_client"
         stages: [commit]
         language: system
-        entry: pipenv run flake8
+        entry: poetry run flake8
         types: [python]
 
       - id: mypy
@@ -30,7 +30,7 @@ repos:
         files: "^rustore_client"
         stages: [commit]
         language: system
-        entry: pipenv run mypy
+        entry: poetry run mypy
         types: [python]
         pass_filenames: true
 
@@ -39,14 +39,14 @@ repos:
         files: ".py$"
         stages: [push]
         language: system
-        entry: pipenv run mypy rustore_client/
+        entry: poetry run mypy rustore_client/
         types: [python]
         pass_filenames: false
 
       - id: pytest
         name: pytest
         stages: [push]
-        entry: pipenv run py.test -v
+        entry: poetry run py.test -v
         pass_filenames: false
         language: system
         always_run: true
