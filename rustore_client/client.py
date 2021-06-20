@@ -118,3 +118,11 @@ class Rustore:
         """
         response = self._request(f"blobs/{reference}", "head")
         return BlobMetadata.from_headers(response.headers)
+
+    def delete(self, reference: str) -> None:
+        """Delete a blob from the blob store
+
+        Args:
+            reference (str): the reference to the blob that should be deleted
+        """
+        self._request(f"blobs/{reference}", "delete")
