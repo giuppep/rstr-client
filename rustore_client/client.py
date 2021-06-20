@@ -16,6 +16,8 @@ FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 
 MAX_BATCH_SIZE = 100
 
+VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
+
 
 @dataclass
 class Rustore:
@@ -30,6 +32,9 @@ class Rustore:
     def _request(
         self, endpoint: str, method: str = "get", **kwargs: Any
     ) -> requests.Response:
+        method = method.lower()
+        if method not in VALID_REQUEST_METHODS:
+            raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
         req = getattr(requests, method)
         response = req(f"{self.url}/{endpoint}", headers=self._headers, **kwargs)
 
@@ -106,10 +111,10 @@ class Rustore:
         """Get a blob's metadata from the blob store.
 
         Args:
-            reference (str): [description]
+            reference (str): a reference to the blob
 
         Returns:
-            BlobMetadata: [description]
+            BlobMetadata: the metadata relative to the blob
         """
         response = self._request(f"blobs/{reference}", "head")
         return BlobMetadata.from_headers(response.headers)
