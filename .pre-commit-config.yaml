@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: isort
         name: isort
-        files: "^rustore_client"
+        files: "^rustore"
         stages: [commit]
         language: system
         entry: poetry run isort
@@ -11,7 +11,7 @@ repos:
 
       - id: black
         name: black
-        files: "^rustore_client"
+        files: "^rustore"
         stages: [commit]
         language: system
         entry: poetry run black
@@ -19,7 +19,7 @@ repos:
 
       - id: flake8
         name: flake8
-        files: "^rustore_client"
+        files: "^rustore"
         stages: [commit]
         language: system
         entry: poetry run flake8
@@ -27,7 +27,7 @@ repos:
 
       - id: mypy
         name: mypy
-        files: "^rustore_client"
+        files: "^rustore"
         stages: [commit]
         language: system
         entry: poetry run mypy
@@ -39,7 +39,7 @@ repos:
         files: ".py$"
         stages: [push]
         language: system
-        entry: poetry run mypy rustore_client/
+        entry: poetry run mypy rustore/
         types: [python]
         pass_filenames: false
       # - id: pytest
