@@ -1,6 +1,6 @@
 # rustore-client
 
-A lightweight `python` API client for the `rustore` blob store.
+A lightweight `python` API client for the [`rustore`](https://github.com/giuppep/rustore) blob store.
 
 ## Installation
 
