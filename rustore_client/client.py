@@ -5,7 +5,7 @@ import os
 from contextlib import ExitStack
 from typing import IO, Any, Optional, Union
 
-import requests
+from requests import Response, request
 
 from .models import Blob, BlobMetadata
 
@@ -37,14 +37,14 @@ class Rustore:
     def _headers(self) -> dict[str, str]:
         return {"X-Auth-Token": self.api_key}
 
-    def _request(
-        self, endpoint: str, method: str = "get", **kwargs: Any
-    ) -> requests.Response:
+    def _request(self, endpoint: str, method: str = "get", **kwargs: Any) -> Response:
         method = method.lower()
         if method not in VALID_REQUEST_METHODS:
             raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
-        req = getattr(requests, method)
-        response = req(f"{self.url}/{endpoint}", headers=self._headers, **kwargs)
+
+        response = request(
+            method, f"{self.url}/{endpoint}", headers=self._headers, **kwargs
+        )
 
         response.raise_for_status()
         return response
@@ -94,6 +94,7 @@ class Rustore:
         batch_size = min(batch_size, MAX_BATCH_SIZE)
         blob_refs: list[str] = []
 
+        # TODO use session
         for batch_number in range(len(files) // batch_size + 1):
             batch_files = files[
                 batch_number * batch_size : (batch_number + 1) * batch_size
