@@ -5,7 +5,8 @@ import os
 from contextlib import ExitStack
 from typing import IO, Any, Optional, Union
 
-from requests import Response, request
+from requests import PreparedRequest, Response, request
+from requests.auth import AuthBase
 
 from .models import Blob, BlobMetadata
 
@@ -22,29 +23,23 @@ class Rustore:
     def __init__(
         self,
         url: Optional[str] = os.getenv("RUSTORE_URL"),
-        api_key: Optional[str] = os.getenv("RUSTORE_API_KEY"),
+        token: Optional[str] = os.getenv("RUSTORE_API_TOKEN"),
     ) -> None:
-        if url is None or api_key is None:
-            raise Exception("Must specify URL and API key")
+        if url is None or token is None:
+            raise Exception("Must specify URL and API token")
 
         self.url: str = url
-        self.api_key: str = api_key
+        self._auth = TokenAuth(token)
 
     def __repr__(self) -> str:
         return f'Rustore("{self.url}")'
-
-    @property
-    def _headers(self) -> dict[str, str]:
-        return {"X-Auth-Token": self.api_key}
 
     def _request(self, endpoint: str, method: str = "get", **kwargs: Any) -> Response:
         method = method.lower()
         if method not in VALID_REQUEST_METHODS:
             raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
 
-        response = request(
-            method, f"{self.url}/{endpoint}", headers=self._headers, **kwargs
-        )
+        response = request(method, f"{self.url}/{endpoint}", auth=self._auth, **kwargs)
 
         response.raise_for_status()
         return response
@@ -135,3 +130,17 @@ class Rustore:
             reference (str): the reference to the blob that should be deleted
         """
         self._request(f"blobs/{reference}", "delete")
+
+
+class TokenAuth(AuthBase):
+    def __init__(self, token: str) -> None:
+        """Class for handling simple token-based authentication used in rustore
+
+        Args:
+            token (str): the API token provided by your rustore instance.
+        """
+        self.token = token
+
+    def __call__(self, r: PreparedRequest) -> PreparedRequest:
+        r.headers["X-Auth-Token"] = self.token
+        return r
