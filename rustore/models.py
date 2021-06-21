@@ -8,6 +8,14 @@ from requests.structures import CaseInsensitiveDict
 
 @dataclass
 class Blob:
+    """Class representing a single blob
+
+    Attributes:
+        reference (str): the unique reference to the blob
+        content (bytes): the content of the blob
+        metadata (BlobMetadata): the blob's metadata
+    """
+
     reference: str
     content: bytes
     metadata: "BlobMetadata"
@@ -18,6 +26,15 @@ class Blob:
 
 @dataclass
 class BlobMetadata:
+    """Class representing as single blob's metadata
+
+    Attributes:
+        filename (str): the blob's filename.
+        size (int): the size of the blob in bytes.
+        mime (str): the mime-type of the blob as a string (e.g. "image/png")
+        created (datetime): when the blob was first created
+    """
+
     filename: str
     size: int
     mime: str
@@ -28,6 +45,14 @@ class BlobMetadata:
 
     @classmethod
     def from_headers(cls, headers: CaseInsensitiveDict) -> "BlobMetadata":
+        """Build a BlobMetadata object from the `headers` attribute of a `requests.Response`
+        object.
+
+        The blob's metadata is specified in the HTTP response headers.
+
+        Returns:
+            BlobMetadata: the blob's metadata
+        """
         return cls(
             filename=headers["filename"],
             size=headers["content-length"],
