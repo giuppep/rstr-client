@@ -24,7 +24,7 @@ class BlobMetadata:
     created: datetime
 
     def __repr__(self) -> str:
-        return f"BlobMetadata('{self.filename}', '{self.mime}', {self.size} bytes)>"
+        return f"BlobMetadata('{self.filename}', '{self.mime}', {self.size} bytes)"
 
     @classmethod
     def from_headers(cls, headers: CaseInsensitiveDict) -> "BlobMetadata":
