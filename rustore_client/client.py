@@ -25,8 +25,23 @@ class Rustore:
         url: Optional[str] = os.getenv("RUSTORE_URL"),
         token: Optional[str] = os.getenv("RUSTORE_API_TOKEN"),
     ) -> None:
-        if url is None or token is None:
-            raise Exception("Must specify URL and API token")
+        """Class for interacting with a remote blob store.
+
+        Args:
+            url (Optional[str], optional): The url of the remote blob store.
+                Defaults to the value of the environment variable RUSTORE_URL.
+            token (Optional[str], optional): The API token used for authentication.
+                Defaults to the value of the environment variable RUSTORE_API_TOKEN.
+
+        Raises:
+            InvalidURL: if no URL is specified.
+            InvalidToken: if no token is specified.
+        """
+        if url is None:
+            raise InvalidURL("Must specify a valid URL.")
+
+        if token is None:
+            raise InvalidToken("Must specify a valid API token.")
 
         self.url: str = url
         self._auth = TokenAuth(token)
@@ -34,14 +49,20 @@ class Rustore:
     def __repr__(self) -> str:
         return f'Rustore("{self.url}")'
 
-    def _request(self, endpoint: str, method: str = "get", **kwargs: Any) -> Response:
+    def _request(self, endpoint: str, method: str, **kwargs: Any) -> Response:
         method = method.lower()
         if method not in VALID_REQUEST_METHODS:
             raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
 
         response = request(method, f"{self.url}/{endpoint}", auth=self._auth, **kwargs)
 
-        response.raise_for_status()
+        if response.status_code == 500:
+            raise ServerError
+        elif response.status_code == 401:
+            raise InvalidToken(
+                "Unauthorized: the specified API token does not match any entry."
+            )
+
         return response
 
     def status_ok(self) -> bool:
@@ -49,8 +70,11 @@ class Rustore:
 
         Returns:
             bool: returns true if the server is running
+
+        Raises:
+            InvalidToken: if the authentication fails.
         """
-        return self._request("status").status_code == 200
+        return self._request("status", "get").status_code == 200
 
     def get(self, reference: str) -> Blob:
         """Get a blob from the blob store
@@ -60,8 +84,21 @@ class Rustore:
 
         Returns:
             Blob: the blob retrieved from the blob store
+
+        Raises:
+            BlobNotFound: if no blob corresponding to the reference is present on the server.
+            InvalidReference: if the reference is malformed.
+            InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}")
+        response = self._request(f"blobs/{reference}", "get")
+
+        if response.status_code == 404:
+            raise BlobNotFound(f"The blob {reference} was not found.")
+        elif response.status_code == 400:
+            raise InvalidReference(f"The reference {reference} is invalid.")
+        else:
+            response.raise_for_status()
+
         metadata = BlobMetadata.from_headers(response.headers)
         return Blob(reference=reference, content=response.content, metadata=metadata)
 
@@ -78,6 +115,9 @@ class Rustore:
 
         Returns:
            list[str] a list of references to the blobs
+
+        Raises:
+            InvalidToken: if the authentication fails.
 
         Examples:
             Upload a file given its path
@@ -119,8 +159,21 @@ class Rustore:
 
         Returns:
             BlobMetadata: the metadata relative to the blob
+
+        Raises:
+            BlobNotFound: if no blob corresponding to the reference is present on the server.
+            InvalidReference: if the reference is malformed.
+            InvalidToken: if the authentication fails.
         """
         response = self._request(f"blobs/{reference}", "head")
+
+        if response.status_code == 404:
+            raise BlobNotFound(f"The blob {reference} was not found.")
+        elif response.status_code == 400:
+            raise InvalidReference(f"The reference {reference} is invalid.")
+        else:
+            response.raise_for_status()
+
         return BlobMetadata.from_headers(response.headers)
 
     def delete(self, reference: str) -> None:
@@ -128,8 +181,20 @@ class Rustore:
 
         Args:
             reference (str): the reference to the blob that should be deleted
+
+        Raises:
+            BlobNotFound: if no blob corresponding to the reference is present on the server.
+            InvalidReference: if the reference is malformed.
+            InvalidToken: if the authentication fails.
         """
-        self._request(f"blobs/{reference}", "delete")
+        response = self._request(f"blobs/{reference}", "delete")
+
+        if response.status_code == 404:
+            raise BlobNotFound(f"The blob {reference} was not found.")
+        elif response.status_code == 400:
+            raise InvalidReference(f"The reference {reference} is invalid.")
+        else:
+            response.raise_for_status()
 
 
 class TokenAuth(AuthBase):
@@ -144,3 +209,27 @@ class TokenAuth(AuthBase):
     def __call__(self, r: PreparedRequest) -> PreparedRequest:
         r.headers["X-Auth-Token"] = self.token
         return r
+
+
+class RustoreException(Exception):
+    pass
+
+
+class BlobNotFound(RustoreException):
+    pass
+
+
+class InvalidReference(RustoreException):
+    pass
+
+
+class InvalidURL(RustoreException):
+    pass
+
+
+class InvalidToken(RustoreException):
+    pass
+
+
+class ServerError(RustoreException):
+    pass
