@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "rustore-client"
+name = "rstr-client"
 version = "0.1.0"
-description = "A client for the rustore blob-store."
+description = "A client for the rstr blob-store."
 authors = ["Giuseppe Papallo <giuseppe@papallo.it>"]
 license = "MIT"
 

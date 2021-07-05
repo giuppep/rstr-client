@@ -19,19 +19,19 @@ MAX_BATCH_SIZE = 100
 VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
 
 
-class Rustore:
+class Rstr:
     def __init__(
         self,
-        url: Optional[str] = os.getenv("RUSTORE_URL"),
-        token: Optional[str] = os.getenv("RUSTORE_API_TOKEN"),
+        url: Optional[str] = os.getenv("RSTR_URL"),
+        token: Optional[str] = os.getenv("RSTR_API_TOKEN"),
     ) -> None:
         """Class for interacting with a remote blob store.
 
         Args:
             url (Optional[str], optional): The url of the remote blob store.
-                Defaults to the value of the environment variable RUSTORE_URL.
+                Defaults to the value of the environment variable RSTR_URL.
             token (Optional[str], optional): The API token used for authentication.
-                Defaults to the value of the environment variable RUSTORE_API_TOKEN.
+                Defaults to the value of the environment variable RSTR_API_TOKEN.
 
         Raises:
             InvalidURL: if no URL is specified.
@@ -47,7 +47,7 @@ class Rustore:
         self._auth = TokenAuth(token)
 
     def __repr__(self) -> str:
-        return f'Rustore("{self.url}")'
+        return f'Rstr("{self.url}")'
 
     def _request(self, endpoint: str, method: str, **kwargs: Any) -> Response:
         method = method.lower()
@@ -66,7 +66,7 @@ class Rustore:
         return response
 
     def status_ok(self) -> bool:
-        """Check the status of the rustore server
+        """Check the status of the rstr server
 
         Returns:
             bool: returns true if the server is running
@@ -122,8 +122,8 @@ class Rustore:
         Examples:
             Upload a file given its path
 
-            >>> rustore = Rustore(api_key=API_KEY, url=URL)
-            >>> rustore.add(["/path/to/my/file.pdf"])
+            >>> rstr = Rstr(api_key=API_KEY, url=URL)
+            >>> rstr.add(["/path/to/my/file.pdf"])
             ['adb7c6e89f4e7b7cfdaee9b2eae0a7202a83af26cde43d2cf2d25badce05675d']
         """
         batch_size = min(batch_size, MAX_BATCH_SIZE)
@@ -199,10 +199,10 @@ class Rustore:
 
 class TokenAuth(AuthBase):
     def __init__(self, token: str) -> None:
-        """Class for handling simple token-based authentication used in rustore
+        """Class for handling simple token-based authentication used in rstr
 
         Args:
-            token (str): the API token provided by your rustore instance.
+            token (str): the API token provided by your rstr instance.
         """
         self.token = token
 
@@ -211,25 +211,25 @@ class TokenAuth(AuthBase):
         return r
 
 
-class RustoreException(Exception):
+class RstrException(Exception):
     pass
 
 
-class BlobNotFound(RustoreException):
+class BlobNotFound(RstrException):
     pass
 
 
-class InvalidReference(RustoreException):
+class InvalidReference(RstrException):
     pass
 
 
-class InvalidURL(RustoreException):
+class InvalidURL(RstrException):
     pass
 
 
-class InvalidToken(RustoreException):
+class InvalidToken(RstrException):
     pass
 
 
-class ServerError(RustoreException):
+class ServerError(RstrException):
     pass

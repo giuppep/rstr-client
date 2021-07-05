@@ -1,6 +1,6 @@
 from .client import (
-    Rustore,
-    RustoreException,
+    Rstr,
+    RstrException,
     InvalidToken,
     InvalidURL,
     InvalidReference,
