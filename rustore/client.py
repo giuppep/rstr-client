@@ -104,7 +104,7 @@ class Rstr:
 
     def add(
         self,
-        files: list[bytes],
+        files: list[FilePathOrBuffer],
         batch_size: int = MAX_BATCH_SIZE,
     ) -> list[str]:
         """Upload a batch of files to the blob store.
@@ -135,10 +135,10 @@ class Rstr:
                 batch_number * batch_size : (batch_number + 1) * batch_size
             ]
 
-            files_to_upload: list[tuple[str, bytes]] = []
+            files_to_upload: list[tuple[str, Union[bytes, IO[bytes]]]] = []
             with ExitStack() as stack:
                 for file in batch_files:
-                    if isinstance(file, (io.BufferedReader, io.BytesIO)):
+                    if isinstance(file, (io.BufferedReader, io.BytesIO, bytes)):
                         files_to_upload.append(("file", file))
                     elif isinstance(file, str):
                         files_to_upload.append(
