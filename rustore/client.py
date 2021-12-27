@@ -4,6 +4,7 @@ import io
 import os
 from contextlib import ExitStack
 from typing import IO, Any, Optional, Union
+from urllib.parse import urljoin
 
 from requests import PreparedRequest, Response, request
 from requests.auth import AuthBase
@@ -54,7 +55,9 @@ class Rstr:
         if method not in VALID_REQUEST_METHODS:
             raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
 
-        response = request(method, f"{self.url}/{endpoint}", auth=self._auth, **kwargs)
+        response = request(
+            method, urljoin(self.url, endpoint), auth=self._auth, **kwargs
+        )
 
         if response.status_code == 500:
             raise ServerError
