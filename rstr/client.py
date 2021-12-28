@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import os
 from contextlib import ExitStack
+from enum import Enum
 from typing import IO, Any, Optional, Union
 from urllib.parse import urljoin
 
@@ -27,6 +28,14 @@ FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 MAX_BATCH_SIZE = 100
 
 VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
+
+
+class RequestMethods(str, Enum):
+    GET = "get"
+    HEAD = "head"
+    POST = "post"
+    PUT = "put"
+    DELETE = "delete"
 
 
 class Rstr:
@@ -59,13 +68,11 @@ class Rstr:
     def __repr__(self) -> str:
         return f'Rstr("{self.url}")'
 
-    def _request(self, endpoint: str, method: str, **kwargs: Any) -> Response:
-        method = method.lower()
-        if method not in VALID_REQUEST_METHODS:
-            raise AttributeError(f"'method' must be one of {VALID_REQUEST_METHODS}")
-
+    def _request(
+        self, endpoint: str, method: RequestMethods, **kwargs: Any
+    ) -> Response:
         response = request(
-            method, urljoin(self.url, endpoint), auth=self._auth, **kwargs
+            method.value, urljoin(self.url, endpoint), auth=self._auth, **kwargs
         )
 
         if response.status_code == 500:
@@ -86,7 +93,7 @@ class Rstr:
         Raises:
             InvalidToken: if the authentication fails.
         """
-        return self._request("status", "get").status_code == 200
+        return self._request("status", RequestMethods.GET).status_code == 200
 
     def get(self, reference: str) -> Blob:
         """Get a blob from the blob store.
@@ -102,7 +109,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", "get")
+        response = self._request(f"blobs/{reference}", RequestMethods.GET)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
@@ -158,9 +165,10 @@ class Rstr:
                         )
                     else:
                         raise TypeError
-                blob_refs.extend(
-                    self._request("blobs", "post", files=files_to_upload).json()
+                response = self._request(
+                    "blobs", RequestMethods.POST, files=files_to_upload
                 )
+                blob_refs.extend(response.json())
         return blob_refs
 
     def metadata(self, reference: str) -> BlobMetadata:
@@ -177,7 +185,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", "head")
+        response = self._request(f"blobs/{reference}", RequestMethods.HEAD)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
@@ -199,7 +207,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", "delete")
+        response = self._request(f"blobs/{reference}", RequestMethods.DELETE)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
