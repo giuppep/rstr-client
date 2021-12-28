@@ -9,7 +9,7 @@ from enum import Enum
 from typing import IO, Any, Optional, Union
 from urllib.parse import urljoin
 
-from requests import PreparedRequest, Response, request
+from requests import PreparedRequest, Response, Session
 from requests.auth import AuthBase
 
 from .exceptions import (
@@ -63,16 +63,43 @@ class Rstr:
             raise InvalidToken("Must specify a valid API token.")
 
         self.url: str = url
-        self._auth = _TokenAuth(token)
+        self._token = token
+        self._session: Optional[Session] = None
 
     def __repr__(self) -> str:
         return f'Rstr("{self.url}")'
 
+    def _init_session(self) -> None:
+        if self._session is not None:
+            raise RuntimeError("Session already initialised")
+        self._session = Session()
+        self._session.auth = _TokenAuth(self._token)
+
+    def __enter__(self) -> "Rstr":
+        assert self._session is None
+        self._init_session()
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        assert self._session is not None
+        self._session.close()
+        self._session = None
+
+    def __del__(self) -> None:
+        if self._session is not None:
+            self._session.close()
+            self._session = None
+
     def _request(
         self, endpoint: str, method: RequestMethods, **kwargs: Any
     ) -> Response:
-        response = request(
-            method.value, urljoin(self.url, endpoint), auth=self._auth, **kwargs
+        if self._session is None:
+            self._init_session()
+
+        assert self._session is not None
+
+        response = self._session.request(
+            method.value, urljoin(self.url, endpoint), **kwargs
         )
 
         if response.status_code == 500:
@@ -148,7 +175,6 @@ class Rstr:
         batch_size = min(batch_size, MAX_BATCH_SIZE)
         blob_refs: list[str] = []
 
-        # TODO use session
         for batch_number in range(len(files) // batch_size + 1):
             batch_files = files[
                 batch_number * batch_size : (batch_number + 1) * batch_size
