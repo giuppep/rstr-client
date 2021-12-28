@@ -70,25 +70,24 @@ class Rstr:
         return f'Rstr("{self.url}")'
 
     def _init_session(self) -> None:
+        if self._session is None:
+            self._session = Session()
+            self._session.auth = _TokenAuth(self._token)
+
+    def _close_session(self) -> None:
         if self._session is not None:
-            raise RuntimeError("Session already initialised")
-        self._session = Session()
-        self._session.auth = _TokenAuth(self._token)
+            self._session.close()
+            self._session = None
 
     def __enter__(self) -> "Rstr":
-        assert self._session is None
         self._init_session()
         return self
 
     def __exit__(self, *_: Any) -> None:
-        assert self._session is not None
-        self._session.close()
-        self._session = None
+        self._close_session()
 
     def __del__(self) -> None:
-        if self._session is not None:
-            self._session.close()
-            self._session = None
+        self._close_session()
 
     def _request(
         self, endpoint: str, method: RequestMethods, **kwargs: Any
