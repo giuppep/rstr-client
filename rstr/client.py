@@ -11,6 +11,13 @@ from urllib.parse import urljoin
 from requests import PreparedRequest, Response, request
 from requests.auth import AuthBase
 
+from .exceptions import (
+    BlobNotFound,
+    InvalidReference,
+    InvalidToken,
+    InvalidURL,
+    ServerError,
+)
 from .models import Blob, BlobMetadata
 
 # https://stackoverflow.com/questions/53418046/how-do-i-type-hint-a-filename-in-a-function
@@ -214,39 +221,3 @@ class _TokenAuth(AuthBase):
     def __call__(self, r: PreparedRequest) -> PreparedRequest:
         r.headers["X-Auth-Token"] = self.token
         return r
-
-
-class RstrException(Exception):
-    """Generic blob store exception."""
-
-    pass
-
-
-class BlobNotFound(RstrException):
-    """The requested blob was not found."""
-
-    pass
-
-
-class InvalidReference(RstrException):
-    """The reference used is invalid."""
-
-    pass
-
-
-class InvalidURL(RstrException):
-    """The specified blob store url is invalid."""
-
-    pass
-
-
-class InvalidToken(RstrException):
-    """The specified blob store token is invalid."""
-
-    pass
-
-
-class ServerError(RstrException):
-    """Unspecified error happened on the server side."""
-
-    pass
