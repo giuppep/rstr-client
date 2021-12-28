@@ -8,7 +8,7 @@ from datetime import datetime
 from requests.structures import CaseInsensitiveDict
 
 
-@dataclass
+@dataclass(frozen=True, repr=False)
 class Blob:
     """Class representing a single blob.
 
@@ -26,7 +26,7 @@ class Blob:
         return f"Blob({self.reference[:10]})"
 
 
-@dataclass
+@dataclass(frozen=True, repr=False)
 class BlobMetadata:
     """Class representing as single blob's metadata.
 
