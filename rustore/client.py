@@ -1,3 +1,5 @@
+"""Rstr REST API client."""
+
 from __future__ import annotations
 
 import io
@@ -45,7 +47,7 @@ class Rstr:
             raise InvalidToken("Must specify a valid API token.")
 
         self.url: str = url
-        self._auth = TokenAuth(token)
+        self._auth = _TokenAuth(token)
 
     def __repr__(self) -> str:
         return f'Rstr("{self.url}")'
@@ -69,7 +71,7 @@ class Rstr:
         return response
 
     def status_ok(self) -> bool:
-        """Check the status of the rstr server
+        """Check the status of the rstr server.
 
         Returns:
             bool: returns true if the server is running
@@ -80,7 +82,7 @@ class Rstr:
         return self._request("status", "get").status_code == 200
 
     def get(self, reference: str) -> Blob:
-        """Get a blob from the blob store
+        """Get a blob from the blob store.
 
         Args:
             reference (str): the reference to the blob
@@ -180,7 +182,7 @@ class Rstr:
         return BlobMetadata.from_headers(response.headers)
 
     def delete(self, reference: str) -> None:
-        """Delete a blob from the blob store
+        """Delete a blob from the blob store.
 
         Args:
             reference (str): the reference to the blob that should be deleted
@@ -200,9 +202,9 @@ class Rstr:
             response.raise_for_status()
 
 
-class TokenAuth(AuthBase):
+class _TokenAuth(AuthBase):
     def __init__(self, token: str) -> None:
-        """Class for handling simple token-based authentication used in rstr
+        """Class for handling simple token-based authentication used in rstr.
 
         Args:
             token (str): the API token provided by your rstr instance.
@@ -215,24 +217,36 @@ class TokenAuth(AuthBase):
 
 
 class RstrException(Exception):
+    """Generic blob store exception."""
+
     pass
 
 
 class BlobNotFound(RstrException):
+    """The requested blob was not found."""
+
     pass
 
 
 class InvalidReference(RstrException):
+    """The reference used is invalid."""
+
     pass
 
 
 class InvalidURL(RstrException):
+    """The specified blob store url is invalid."""
+
     pass
 
 
 class InvalidToken(RstrException):
+    """The specified blob store token is invalid."""
+
     pass
 
 
 class ServerError(RstrException):
+    """Unspecified error happened on the server side."""
+
     pass
