@@ -1,9 +1,9 @@
-from .client import (
+from .client import Rstr
+from .exceptions import (
     BlobNotFound,
     InvalidReference,
     InvalidToken,
     InvalidURL,
-    Rstr,
     RstrException,
     ServerError,
 )
