@@ -27,8 +27,6 @@ FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 
 MAX_BATCH_SIZE = 100
 
-VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
-
 
 class RequestMethods(str, Enum):
     GET = "get"
