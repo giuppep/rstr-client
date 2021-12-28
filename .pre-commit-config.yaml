@@ -25,6 +25,14 @@ repos:
         entry: poetry run flake8
         types: [python]
 
+      - id: pydocstyle
+        name: pydocstyle
+        files: "^rstr"
+        stages: [commit]
+        language: system
+        entry: poetry run pydocstyle
+        types: [python]
+
       - id: mypy
         name: mypy
         files: "^rstr"

@@ -19,6 +19,11 @@ mypy = "^0.902"
 Sphinx = "^4.0.2"
 ipython = "^7.24.1"
 types-requests = "^2.26.2"
+pydocstyle = "^6.1.1"
+
+[tool.pydocstyle]
+convention = "google"
+add-ignore = "D105,D104,D101,D100"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

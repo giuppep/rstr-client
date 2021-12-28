@@ -1,3 +1,5 @@
+"""Data models representing the entities returned by the API client."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,7 +10,7 @@ from requests.structures import CaseInsensitiveDict
 
 @dataclass
 class Blob:
-    """Class representing a single blob
+    """Class representing a single blob.
 
     Attributes:
         reference (str): the unique reference to the blob
@@ -26,7 +28,7 @@ class Blob:
 
 @dataclass
 class BlobMetadata:
-    """Class representing as single blob's metadata
+    """Class representing as single blob's metadata.
 
     Attributes:
         filename (str): the blob's filename.
@@ -45,8 +47,7 @@ class BlobMetadata:
 
     @classmethod
     def from_headers(cls, headers: CaseInsensitiveDict) -> "BlobMetadata":
-        """Build a BlobMetadata object from the `headers` attribute of a `requests.Response`
-        object.
+        """Build a BlobMetadata object from the `headers` attribute of a `requests.Response` object.
 
         The blob's metadata is specified in the HTTP response headers.
 
