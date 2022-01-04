@@ -145,7 +145,8 @@ class Rstr:
 
         Args:
             files (list[FilePathOrBuffer]): a list of paths or file-like objects to upload
-            batch_size (int, optional): How many documents to upload at once. Defaults to MAX_BATCH_SIZE.
+            batch_size (int, optional): How many documents to upload at once.
+                Defaults to ``MAX_BATCH_SIZE``.
 
         Returns:
            list[str] a list of references to the blobs
@@ -238,7 +239,6 @@ class Rstr:
             BlobNotFound: if no blob corresponding to the reference is present on the server.
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
-                Example:
 
         Example:
             >>> ref = "eb8471d882..."
