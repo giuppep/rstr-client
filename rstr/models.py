@@ -13,7 +13,7 @@ class Blob:
     """Class representing a single blob (with metadata).
 
     Attributes:
-        reference (str): the unique reference to the blob (the ``sha256`` has of its content.)
+        reference (str): the unique reference to the blob (i.e. the ``sha256`` hash of its content).
         content (bytes): the content of the blob in bytes.
         metadata (BlobMetadata): the blob's metadata (filename, mimetype, size...).
     """
