@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rstr-client"
-version = "0.1.0"
+version = "0.1.0b1"
 description = "A client for the rstr blob-store."
 authors = ["Giuseppe Papallo <giuseppe@papallo.it>"]
 license = "MIT"
