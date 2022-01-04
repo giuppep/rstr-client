@@ -7,9 +7,11 @@ Welcome to rstr-client's documentation!
 .. automodule:: rstr
    :noindex:
 
+Contents
+********
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    client
    models
