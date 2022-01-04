@@ -10,12 +10,12 @@ from requests.structures import CaseInsensitiveDict
 
 @dataclass(frozen=True, repr=False)
 class Blob:
-    """Class representing a single blob.
+    """Class representing a single blob (with metadata).
 
     Attributes:
-        reference (str): the unique reference to the blob
-        content (bytes): the content of the blob
-        metadata (BlobMetadata): the blob's metadata
+        reference (str): the unique reference to the blob (i.e. the ``sha256`` hash of its content).
+        content (bytes): the content of the blob in bytes.
+        metadata (BlobMetadata): the blob's metadata (filename, mimetype, size...).
     """
 
     reference: str
@@ -33,8 +33,8 @@ class BlobMetadata:
     Attributes:
         filename (str): the blob's filename.
         size (int): the size of the blob in bytes.
-        mime (str): the mime-type of the blob as a string (e.g. "image/png")
-        created (datetime): when the blob was first created
+        mime (str): the mime-type of the blob as a string (e.g. ``image/png``).
+        created (datetime): when the blob was first created.
     """
 
     filename: str
