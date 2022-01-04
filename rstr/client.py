@@ -113,7 +113,7 @@ class Rstr:
         """
         return BlobMetadata(
             filename=headers["filename"],
-            size=headers["content-length"],
+            size=int(headers["content-length"]),
             created=datetime.fromisoformat(headers["created"]),
             mime=headers["content-type"],
         )
