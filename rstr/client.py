@@ -27,10 +27,8 @@ FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 
 MAX_BATCH_SIZE = 100
 
-VALID_REQUEST_METHODS = ("get", "post", "delete", "put", "head")
 
-
-class RequestMethods(str, Enum):
+class _RequestMethods(str, Enum):
     GET = "get"
     HEAD = "head"
     POST = "post"
@@ -46,11 +44,24 @@ class Rstr:
     ) -> None:
         """Class for interacting with a remote blob store.
 
+        It is recommended that this is used as a context manager:
+
+        >>> with Rstr(url=url, token=token) as rstr:
+        >>>     rsrt.get(...)
+
+        but it can also be used as a normal object
+
+        >>> rstr = Rstr(url=url, token=token)
+        >>> rstr.get(...)
+
+        in which case the HTTP session will be initialized by the constructor and closed
+        by the destructor.
+
         Args:
             url (Optional[str], optional): The url of the remote blob store.
-                Defaults to the value of the environment variable RSTR_URL.
+                Defaults to the value of the environment variable ``RSTR_URL``.
             token (Optional[str], optional): The API token used for authentication.
-                Defaults to the value of the environment variable RSTR_API_TOKEN.
+                Defaults to the value of the environment variable ``RSTR_API_TOKEN``.
 
         Raises:
             InvalidURL: if no URL is specified.
@@ -90,7 +101,7 @@ class Rstr:
         self._close_session()
 
     def _request(
-        self, endpoint: str, method: RequestMethods, **kwargs: Any
+        self, endpoint: str, method: _RequestMethods, **kwargs: Any
     ) -> Response:
         if self._session is None:
             self._init_session()
@@ -118,34 +129,12 @@ class Rstr:
 
         Raises:
             InvalidToken: if the authentication fails.
+
+        Example:
+            >>> with Rstr(url=url, token=token) as rstr:
+            >>>     assert rstr.status_ok()
         """
-        return self._request("status", RequestMethods.GET).status_code == 200
-
-    def get(self, reference: str) -> Blob:
-        """Get a blob from the blob store.
-
-        Args:
-            reference (str): the reference to the blob
-
-        Returns:
-            Blob: the blob retrieved from the blob store
-
-        Raises:
-            BlobNotFound: if no blob corresponding to the reference is present on the server.
-            InvalidReference: if the reference is malformed.
-            InvalidToken: if the authentication fails.
-        """
-        response = self._request(f"blobs/{reference}", RequestMethods.GET)
-
-        if response.status_code == 404:
-            raise BlobNotFound(f"The blob {reference} was not found.")
-        elif response.status_code == 400:
-            raise InvalidReference(f"The reference {reference} is invalid.")
-        else:
-            response.raise_for_status()
-
-        metadata = BlobMetadata.from_headers(response.headers)
-        return Blob(reference=reference, content=response.content, metadata=metadata)
+        return self._request("status", _RequestMethods.GET).status_code == 200
 
     def add(
         self,
@@ -156,7 +145,8 @@ class Rstr:
 
         Args:
             files (list[FilePathOrBuffer]): a list of paths or file-like objects to upload
-            batch_size (int, optional): How many documents to upload at once. Defaults to MAX_BATCH_SIZE.
+            batch_size (int, optional): How many documents to upload at once.
+                Defaults to ``MAX_BATCH_SIZE``.
 
         Returns:
            list[str] a list of references to the blobs
@@ -164,12 +154,13 @@ class Rstr:
         Raises:
             InvalidToken: if the authentication fails.
 
-        Examples:
+        Example:
             Upload a file given its path
 
-            >>> rstr = Rstr(api_key=API_KEY, url=URL)
-            >>> rstr.add(["/path/to/my/file.pdf"])
-            ['adb7c6e89f4e7b7cfdaee9b2eae0a7202a83af26cde43d2cf2d25badce05675d']
+            >>> with Rstr(url=url, token=token) as rstr:
+            >>>     refs = rstr.add(["/path/to/my/file.pdf"])
+            >>> print(refs)
+            ['eb8471d882d2a90a4b1c60dcaa41fc5d0c33143f8ebc910247453a130e74ca68']
         """
         batch_size = min(batch_size, MAX_BATCH_SIZE)
         blob_refs: list[str] = []
@@ -191,13 +182,52 @@ class Rstr:
                     else:
                         raise TypeError
                 response = self._request(
-                    "blobs", RequestMethods.POST, files=files_to_upload
+                    "blobs", _RequestMethods.POST, files=files_to_upload
                 )
                 blob_refs.extend(response.json())
         return blob_refs
 
+    def get(self, reference: str) -> Blob:
+        """Get a blob from the blob store.
+
+        Args:
+            reference (str): the reference to the blob
+
+        Returns:
+            Blob: the blob retrieved from the blob store
+
+        Raises:
+            BlobNotFound: if no blob corresponding to the reference is present on the server.
+            InvalidReference: if the reference is malformed.
+            InvalidToken: if the authentication fails.
+
+        Example:
+            Download a file given its reference
+
+            >>> ref = "eb8471d882..."
+            >>> with Rstr(url=url, token=token) as rstr:
+            >>>     blob = rstr.get(ref)
+            >>> print(blob)
+            Blob(eb8471d882)
+            >>> blob.content
+            b"..."
+            >>> blob.metadata
+            BlobMetadata('file.pdf', 'application/pdf', 1024 bytes)
+        """
+        response = self._request(f"blobs/{reference}", _RequestMethods.GET)
+
+        if response.status_code == 404:
+            raise BlobNotFound(f"The blob {reference} was not found.")
+        elif response.status_code == 400:
+            raise InvalidReference(f"The reference {reference} is invalid.")
+        else:
+            response.raise_for_status()
+
+        metadata = BlobMetadata.from_headers(response.headers)
+        return Blob(reference=reference, content=response.content, metadata=metadata)
+
     def metadata(self, reference: str) -> BlobMetadata:
-        """Get a blob's metadata from the blob store.
+        """Get a blob's metadata from the blob store without downloading the blob's content.
 
         Args:
             reference (str): a reference to the blob
@@ -209,8 +239,15 @@ class Rstr:
             BlobNotFound: if no blob corresponding to the reference is present on the server.
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
+
+        Example:
+            >>> ref = "eb8471d882..."
+            >>> with Rstr(url=url, token=token) as rstr:
+            >>>     blob_metadata = rstr.metadata(ref)
+            >>> blob_metadata
+            BlobMetadata('file.pdf', 'application/pdf', 1024 bytes)
         """
-        response = self._request(f"blobs/{reference}", RequestMethods.HEAD)
+        response = self._request(f"blobs/{reference}", _RequestMethods.HEAD)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
@@ -222,7 +259,7 @@ class Rstr:
         return BlobMetadata.from_headers(response.headers)
 
     def delete(self, reference: str) -> None:
-        """Delete a blob from the blob store.
+        """Permanently delete a blob from the blob store.
 
         Args:
             reference (str): the reference to the blob that should be deleted
@@ -231,8 +268,15 @@ class Rstr:
             BlobNotFound: if no blob corresponding to the reference is present on the server.
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
+
+        Example:
+            >>> ref = "eb8471d882..."
+            >>> with Rstr(url=url, token=token) as rstr:
+            >>>     rstr.delete(ref)
+            >>>     blob = rstr.get(ref)
+            rstr.exceptions.BlobNotFound: The blob eb8471d882... was not found.
         """
-        response = self._request(f"blobs/{reference}", RequestMethods.DELETE)
+        response = self._request(f"blobs/{reference}", _RequestMethods.DELETE)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
