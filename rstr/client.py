@@ -44,7 +44,7 @@ class Rstr:
     ) -> None:
         """Class for interacting with a remote blob store.
 
-        It is recommended that this is used as a context manager
+        It is recommended that this is used as a context manager:
 
         >>> with Rstr(url=url, token=token) as rstr:
         >>>     rsrt.get(...)
