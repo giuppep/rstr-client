@@ -28,7 +28,7 @@ FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 MAX_BATCH_SIZE = 100
 
 
-class RequestMethods(str, Enum):
+class _RequestMethods(str, Enum):
     GET = "get"
     HEAD = "head"
     POST = "post"
@@ -88,7 +88,7 @@ class Rstr:
         self._close_session()
 
     def _request(
-        self, endpoint: str, method: RequestMethods, **kwargs: Any
+        self, endpoint: str, method: _RequestMethods, **kwargs: Any
     ) -> Response:
         if self._session is None:
             self._init_session()
@@ -117,7 +117,7 @@ class Rstr:
         Raises:
             InvalidToken: if the authentication fails.
         """
-        return self._request("status", RequestMethods.GET).status_code == 200
+        return self._request("status", _RequestMethods.GET).status_code == 200
 
     def get(self, reference: str) -> Blob:
         """Get a blob from the blob store.
@@ -133,7 +133,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", RequestMethods.GET)
+        response = self._request(f"blobs/{reference}", _RequestMethods.GET)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
@@ -189,7 +189,7 @@ class Rstr:
                     else:
                         raise TypeError
                 response = self._request(
-                    "blobs", RequestMethods.POST, files=files_to_upload
+                    "blobs", _RequestMethods.POST, files=files_to_upload
                 )
                 blob_refs.extend(response.json())
         return blob_refs
@@ -208,7 +208,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", RequestMethods.HEAD)
+        response = self._request(f"blobs/{reference}", _RequestMethods.HEAD)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
@@ -230,7 +230,7 @@ class Rstr:
             InvalidReference: if the reference is malformed.
             InvalidToken: if the authentication fails.
         """
-        response = self._request(f"blobs/{reference}", RequestMethods.DELETE)
+        response = self._request(f"blobs/{reference}", _RequestMethods.DELETE)
 
         if response.status_code == 404:
             raise BlobNotFound(f"The blob {reference} was not found.")
