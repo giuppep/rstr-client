@@ -5,12 +5,14 @@ from __future__ import annotations
 import io
 import os
 from contextlib import ExitStack
+from datetime import datetime
 from enum import Enum
 from typing import IO, Any, Optional, Union
 from urllib.parse import urljoin
 
 from requests import PreparedRequest, Response, Session
 from requests.auth import AuthBase
+from requests.structures import CaseInsensitiveDict
 
 from .exceptions import (
     BlobNotFound,
@@ -99,6 +101,22 @@ class Rstr:
 
     def __del__(self) -> None:
         self._close_session()
+
+    @staticmethod
+    def _headers_to_metadata(headers: CaseInsensitiveDict) -> BlobMetadata:
+        """Build a BlobMetadata object from the `headers` attribute of a `requests.Response` object.
+
+        The blob's metadata is specified in the HTTP response headers.
+
+        Returns:
+            BlobMetadata: the blob's metadata
+        """
+        return BlobMetadata(
+            filename=headers["filename"],
+            size=headers["content-length"],
+            created=datetime.fromisoformat(headers["created"]),
+            mime=headers["content-type"],
+        )
 
     def _request(
         self, endpoint: str, method: _RequestMethods, **kwargs: Any
@@ -223,7 +241,7 @@ class Rstr:
         else:
             response.raise_for_status()
 
-        metadata = BlobMetadata.from_headers(response.headers)
+        metadata = self._headers_to_metadata(response.headers)
         return Blob(reference=reference, content=response.content, metadata=metadata)
 
     def metadata(self, reference: str) -> BlobMetadata:
@@ -256,7 +274,7 @@ class Rstr:
         else:
             response.raise_for_status()
 
-        return BlobMetadata.from_headers(response.headers)
+        return self._headers_to_metadata(response.headers)
 
     def delete(self, reference: str) -> None:
         """Permanently delete a blob from the blob store.
