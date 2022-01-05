@@ -7,6 +7,15 @@ Welcome to rstr-client's documentation!
 .. automodule:: rstr
    :noindex:
 
+Installation
+************
+
+You can install the ``rstr-client`` library with ``pip``:
+
+.. code-block:: bash
+
+   pip install rstr-client
+
 Contents
 ********
 

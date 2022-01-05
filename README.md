@@ -4,7 +4,11 @@ A lightweight `python` API client for the [`rstr`](https://github.com/giuppep/rs
 
 ## Installation
 
-TODO
+You can install the `rstr-client` library with `pip`
+
+```
+pip install rstr-client
+```
 
 ## Usage
 
