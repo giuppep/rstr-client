@@ -26,6 +26,8 @@ File = Union[str, bytes, os.PathLike]
 FilePathOrBuffer = Union[File, IO[bytes], io.BufferedReader]
 
 MAX_BATCH_SIZE = 100
+URL_ENV_VAR = "RSTR_URL"
+TOKEN_ENV_VAR = "RSTR_TOKEN"
 
 
 class _RequestMethods(str, Enum):
@@ -37,22 +39,18 @@ class _RequestMethods(str, Enum):
 
 
 class Rstr:
-    def __init__(
-        self,
-        url: Optional[str] = os.getenv("RSTR_URL"),
-        token: Optional[str] = os.getenv("RSTR_API_TOKEN"),
-    ) -> None:
+    def __init__(self, url: Optional[str] = None, token: Optional[str] = None) -> None:
         """Class for interacting with a remote blob store.
 
         It is recommended that this is used as a context manager:
 
         >>> with Rstr(url=url, token=token) as rstr:
-        >>>     rsrt.get(...)
+        >>>     blob = rsrt.get(...)
 
         but it can also be used as a normal object
 
         >>> rstr = Rstr(url=url, token=token)
-        >>> rstr.get(...)
+        >>> blob = rstr.get(...)
 
         in which case the HTTP session will be initialized by the constructor and closed
         by the destructor.
@@ -61,15 +59,17 @@ class Rstr:
             url (Optional[str], optional): The url of the remote blob store.
                 Defaults to the value of the environment variable ``RSTR_URL``.
             token (Optional[str], optional): The API token used for authentication.
-                Defaults to the value of the environment variable ``RSTR_API_TOKEN``.
+                Defaults to the value of the environment variable ``RSTR_TOKEN``.
 
         Raises:
             InvalidURL: if no URL is specified.
             InvalidToken: if no token is specified.
         """
+        url = url or os.getenv(URL_ENV_VAR)
         if url is None:
             raise InvalidURL("Must specify a valid URL.")
 
+        token = token or os.getenv(TOKEN_ENV_VAR)
         if token is None:
             raise InvalidToken("Must specify a valid API token.")
 
