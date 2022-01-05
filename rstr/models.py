@@ -5,8 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from requests.structures import CaseInsensitiveDict
-
 
 @dataclass(frozen=True, repr=False)
 class Blob:
@@ -44,19 +42,3 @@ class BlobMetadata:
 
     def __repr__(self) -> str:
         return f"BlobMetadata('{self.filename}', '{self.mime}', {self.size} bytes)"
-
-    @classmethod
-    def from_headers(cls, headers: CaseInsensitiveDict) -> "BlobMetadata":
-        """Build a BlobMetadata object from the `headers` attribute of a `requests.Response` object.
-
-        The blob's metadata is specified in the HTTP response headers.
-
-        Returns:
-            BlobMetadata: the blob's metadata
-        """
-        return cls(
-            filename=headers["filename"],
-            size=headers["content-length"],
-            created=datetime.fromisoformat(headers["created"]),
-            mime=headers["content-type"],
-        )
