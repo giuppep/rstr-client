@@ -36,8 +36,10 @@ jobs:
       - name: Check Version
         if: ${{ steps.release.outputs.release_created }}
         id: check-version
+        env:
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
         run: |
-          [[ "$(poetry version --short)" = ${GITHUB_REF#refs/tags/} ]] \
+          [[ v"$(poetry version --short)" = "$TAG_NAME" ]] \
             || (echo "version does not match tag" && exit 1)
 
       - name: Build project for distribution
@@ -47,7 +49,6 @@ jobs:
       - name: Publish to PyPI
         if: ${{ steps.release.outputs.release_created }}
         env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TEST_TOKEN }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config repositories.test-pypi https://test.pypi.org/legacy/
-          poetry publish -r "test-pypi" -u __token__ -p $POETRY_PYPI_TOKEN_PYPI
+          poetry publish -u __token__ -p $POETRY_PYPI_TOKEN_PYPI
