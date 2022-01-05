@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/giuppep/rstr-client/compare/v0.1.0...v0.2.0) (2022-01-05)
+
+
+### Features
+
+* initial release ([21a9ebf](https://github.com/giuppep/rstr-client/commit/21a9ebf4f5835b8fe80c1cab8201d655fb7a9a7b))
+
+
+### Bug Fixes
+
+* debug release ([6ef03ba](https://github.com/giuppep/rstr-client/commit/6ef03bace414d09a6cd8f1ebba2798202f9912f2))
+
 ## 0.1.0 (2022-01-05)
 
 
