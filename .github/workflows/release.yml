@@ -50,8 +50,8 @@ jobs:
       - name: Build project for distribution
         run: poetry build
 
-      - name: Publish to PyPI
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry publish -u __token__ -p $POETRY_PYPI_TOKEN_PYPI
+      # - name: Publish to PyPI
+      #   env:
+      #     POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      #   run: |
+      #     poetry publish -u __token__ -p $POETRY_PYPI_TOKEN_PYPI
