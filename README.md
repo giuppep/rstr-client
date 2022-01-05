@@ -15,7 +15,7 @@ from rstr import Rstr
 # and your API Token.
 # NOTE: these can be specified as environment variables
 # >>> export RSTR_URL="https://my-rstr.rs"
-# >>> export RSTR_API_TOKEN="MY_API_TOKEN"
+# >>> export RSTR_TOKEN="MY_API_TOKEN"
 url = "https://my-rstr.rs"
 token = "MY_API_TOKEN"
 
